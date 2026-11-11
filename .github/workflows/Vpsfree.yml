@@ -7,7 +7,6 @@ jobs:
   run-redroid:
     runs-on: ubuntu-latest
     timeout-minutes: 360
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -16,12 +15,16 @@ jobs:
         uses: tailscale/github-action@v2
         with:
           authkey: tskey-auth-kqVQMiWebE11CNTRL-AVzohRdb6N7EHSv2VkrsM7kNPJFWLmYi
+          # Bật chế độ route để nhận diện traffic từ xa chuẩn xác
+          args: --advertise-tags=tag:container
 
       - name: Kiểm tra mô-đun Kernel & KVM
         run: |
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" || true
           sudo modprobe ashmem_linux || true
-          ls -l /dev/binder* /dev/kvm || true
+          ls -l /dev/binder* || true
+          # Kiểm tra xem có hỗ trợ KVM phần cứng không
+          egrep -c '(vmx|svm)' /proc/cpuinfo || echo "Không có KVM phần cứng, Redroid sẽ chạy giả lập thuần software (chậm hơn)"
 
       - name: Khởi chạy Redroid Android 11 Container
         run: |
@@ -33,21 +36,27 @@ jobs:
             androidboot.hardware=redroid \
             gles.enabled=1
 
-      - name: Khởi chạy Web UI (scrcpy-web qua Docker)
+      - name: Khởi chạy Web UI (scrcpy-web)
         run: |
+          # Dùng bản scrcpy-web chuẩn kết nối qua ADB server local
           sudo docker run -d --name redroid-web \
             --net=host \
-            -e ADB_SERVER_IP=127.0.0.1 \
-            -e DEVICE_PORT=5555 \
             -p 8000:8000 \
-            cybertec/scrcpy-web || sudo docker run -d --name redroid-web --net=host -p 8000:8000 budtmo/docker-android:emulator_11 || true
+            genymobile/scrcpy || true
+          # Hoặc dùng web ui thay thế tương thích tốt với mạng host
+          sudo docker run -d --name scrcpy-server \
+            --net=host \
+            -e ADB_SERVER_IP=127.0.0.1 \
+            -p 8000:8000 \
+            cybertec/scrcpy-web || true
 
       - name: Lấy IP Tailscale để mở Web
         run: |
-          echo "=== IP TAILSCALE CỦA WEB UI ==="
-          tailscale ip -4
+          echo "=== IP TAILSCALE CỦA CLOUD PC ==="
+          TS_IP=$(tailscale ip -4)
+          echo "Truy cập trực tiếp tại: http://$TS_IP:8000 trên Tailscale App của máy cá nhân"
 
       - name: Giữ Session sống 6 tiếng
         run: |
-          echo "Đang chạy! Truy cập http://<IP_TAILSCALE>:8000 trên trình duyệt."
+          echo "Cloud PC đang chạy ngầm..."
           sleep 21600
