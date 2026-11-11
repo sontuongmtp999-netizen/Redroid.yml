@@ -16,6 +16,7 @@ jobs:
         uses: tailscale/github-action@v2
         with:
           authkey: tskey-auth-kqVQMiWebE11CNTRL-AVzohRdb6N7EHSv2VkrsM7kNPJFWLmYi
+
       - name: Kiểm tra mô-đun Kernel & KVM
         run: |
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" || true
@@ -28,25 +29,16 @@ jobs:
             --privileged \
             -p 5555:5555 \
             -v /data:/data \
-            redroid/redroid:latest \
+            redroid/redroid:11.0.0-latest \
             androidboot.hardware=redroid \
             gles.enabled=1
 
-      - name: Khởi chạy Scrcpy Web Client (Điều khiển qua Trình duyệt)
-        run: |
-          sudo docker run -d --name redroid-web \
-            --link redroid-phone:redroid-phone \
-            -p 8000:8000 \
-            -e DEVICE_IP=redroid-phone \
-            -e DEVICE_PORT=5555 \
-            soraxas/scrcpy-server
-
-      - name: Hiển thị IP Tailscale kết nối
+      - name: Lấy IP Tailscale để kết nối ADB
         run: |
           echo "=== IP TAILSCALE CỦA CLOUD PHONE ==="
           tailscale ip -4
 
       - name: Giữ Session sống 6 tiếng
         run: |
-          echo "Redroid Cloud Phone đang chạy! Mở web qua IP Tailscale cổng 8000."
+          echo "Redroid đang chạy! Dùng lệnh: adb connect <IP_TAILSCALE>:5555 để điều khiển."
           sleep 21600
