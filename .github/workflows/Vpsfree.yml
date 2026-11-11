@@ -28,7 +28,7 @@ jobs:
             --privileged \
             -p 5555:5555 \
             -v /data:/data \
-            redroid/redroid:11.0.0_latest \
+            redroid/redroid:11.0.0 \
             androidboot.hardware=redroid \
             gles.enabled=1
 
