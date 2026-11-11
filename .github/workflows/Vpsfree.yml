@@ -1,4 +1,4 @@
-name: Free Cloud VPS
+name: Run Redroid on Actions
 
 on:
   workflow_dispatch:
@@ -6,8 +6,26 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 360 # Treo tối đa 6 tiếng mỗi lần chạy
     steps:
-      - name: Setup Tmate SSH Tunnel (Truy cập VPS qua dòng lệnh Terminal)
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 360
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger
+          sudo usermod -aG kvm $USER
+
+      - name: Start Redroid Container
+        run: |
+          docker run -d --privileged \
+            --name redroid \
+            -p 5555:5555 \
+            redroid/redroid:11.0.0-latest \
+            androidboot.redroid_width=720 \
+            androidboot.redroid_height=1280 \
+            androidboot.redroid_dpi=320
+
+      - name: Start Serveo TCP Tunnel & Keep Alive
+        run: |
+          mkdir -p ~/.ssh
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
+          ssh -R 0:localhost:5555 serveo.net &
+          sleep 21600
