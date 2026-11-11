@@ -1,31 +1,22 @@
-name: Run Redroid on Actions
+name: Windows Cloud PC RDP
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    timeout-minutes: 360
     steps:
-      - name: Enable KVM
+      - name: Bật tính năng Remote Desktop (RDP)
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
-          sudo udevadm control --reload-rules && sudo udevadm trigger
-          sudo usermod -aG kvm $USER
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
+          # Đổi mật khẩu tài khoản runner thành một chuỗi dễ nhớ để lát đăng nhập
+          net user runneradmin CloudPC@12345
 
-      - name: Start Redroid Container
+      - name: Cài đặt và chạy Serveo TCP Tunnel cho cổng RDP (3389)
         run: |
-          docker run -d --privileged \
-            --name redroid \
-            -p 5555:5555 \
-            redroid/redroid:11.0.0-latest \
-            androidboot.redroid_width=720 \
-            androidboot.redroid_height=1280 \
-            androidboot.redroid_dpi=320
-
-      - name: Start Serveo TCP Tunnel & Keep Alive
-        run: |
-          mkdir -p ~/.ssh
-          echo "StrictHostKeyChecking no" >> ~/.ssh/config
-          ssh -R 0:localhost:5555 serveo.net &
-          sleep 21600
+          # Dùng lệnh SSH tích hợp sẵn trên Windows để mở đường hầm Serveo vào cổng 3389 của RDP
+          ssh -o StrictHostKeyChecking=no -R 0:localhost:3389 serveo.net
