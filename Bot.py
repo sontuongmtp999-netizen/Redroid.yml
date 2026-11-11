@@ -46,4 +46,4 @@ async def hack_catfood(interaction: discord.Interaction, transfer_code: str, con
         await interaction.followup.send(f"Có lỗi xảy ra hoặc mã sai: `{str(e)}`")
 
 # Nhét trực tiếp token vào đây, khỏi cần biến môi trường lằng nhằng
-client.run("L_LC0hYMyay075SMHlhRJ8K8YRplDrm9")
+client.run("MTU2NDQwNjk3NjM4Mzk0NjgwMg.GH-NpE.rQ5jRukTE6iIGRfp8-EO4tGiqS9Q8vuI-wUmIY")
