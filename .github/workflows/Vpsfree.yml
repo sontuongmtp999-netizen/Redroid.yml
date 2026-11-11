@@ -6,18 +6,17 @@ on:
 jobs:
   run-redroid:
     runs-on: ubuntu-latest
-    timeout-minutes: 360 # Tối đa 6 tiếng per run
+    timeout-minutes: 360
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Cài đặt và kết nối Tailscale
+      - name: Kết nối Tailscale tự động bằng Auth Key
         uses: tailscale/github-action@v2
         with:
-          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
-          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
-          tags: tag:ci
+          authkey: tskey-auth-kqVQMiWebE11CNTRL-AVzohRdb6N7EHSv2VkrsM7kNPJFWLmYi
+          args: --advertise-tags=tag:ci --accept-routes
 
       - name: Kiểm tra mô-đun Kernel & KVM
         run: |
@@ -27,7 +26,7 @@ jobs:
 
       - name: Khởi chạy Redroid Android 11 Container
         run: |
-          docker run -d --name redroid-phone \
+          sudo docker run -d --name redroid-phone \
             --privileged \
             -p 5555:5555 \
             -v /data:/data \
@@ -37,7 +36,7 @@ jobs:
 
       - name: Khởi chạy Scrcpy Web Client (Điều khiển qua Trình duyệt)
         run: |
-          docker run -d --name redroid-web \
+          sudo docker run -d --name redroid-web \
             --link redroid-phone:redroid-phone \
             -p 8000:8000 \
             -e DEVICE_IP=redroid-phone \
