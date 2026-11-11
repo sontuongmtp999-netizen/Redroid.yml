@@ -17,5 +17,5 @@ jobs:
 
       - name: Chạy Pinggy TCP Tunnel cho cổng RDP (3389)
         run: |
-          # Dùng ssh kết nối tới a.pinggy.io để forward cổng 3389 qua cổng 443 (né mọi tường lửa)
+          ssh -p 443 -o StrictHostKeyChecking=no -R 0:localhost:3389 a.pinggy.io
           ssh -p 443 -o StrictHostKeyChecking=no -R0:localhost:3389 a.pinggy.iolocalhost:3389 serveo.net
