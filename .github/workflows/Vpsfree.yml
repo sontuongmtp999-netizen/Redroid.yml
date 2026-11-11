@@ -14,7 +14,7 @@ jobs:
 
       - name: Cấu hình Mật khẩu Administrator
         run: |
-          net user runneradmin CloudPC@12345
+          net user runneradmin CloudPc@12345
           Write-Host "Da doi mat khau thanh cong!"
 
       - name: Bật tính năng Remote Desktop (RDP)
@@ -32,7 +32,7 @@ jobs:
       - name: Kết nối Tailscale tự động bằng Auth Key
         run: |
           # Thay thế chuỗi tskey-auth-xxxx bằng Auth Key Reusable của mày
-          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="tskey-auth-knJXwBeyQV11CNTRL-hKSvza1r6sT9P5bb2pCurTTrjFdsj2Eb " --accept-routes
+          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="tskey-auth-ktYGj6mM5z11CNTRL-FacRxdhRf53frhUVLiUB636cTYB1WgUu" --accept-routes
           Write-Host "Da ket noi Tailscale thanh cong!"
 
       - name: Lấy địa chỉ IP Tailscale
