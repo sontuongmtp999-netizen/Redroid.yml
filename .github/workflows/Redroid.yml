@@ -6,12 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Cấp quyền tối đa để chạy container lồng nhau và giả lập KVM
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Enable KVM for Android Virtualization
+      - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
           sudo udevadm control --reload-rules && sudo udevadm trigger
@@ -26,11 +22,15 @@ jobs:
             androidboot.redroid_width=720 \
             androidboot.redroid_height=1280 \
             androidboot.redroid_dpi=320
-        
-      - name: Keep Runner Alive & Expose Port
+
+      - name: Start Serveo TCP Tunnel & Keep Alive
         run: |
-          # Dùng Localtunnel hoặc công cụ TCP tunnel miễn phí để kéo cổng 5555 ra ngoài không cần thẻ
-          ssh -R 80:localhost:5555 serveo.net
+          # Tắt strict host key checking để không bao giờ bị lỗi dính khóa SSH
+          mkdir -p ~/.ssh
+          echo "StrictHostKeyChecking no" >> ~/.ssh/config
           
-          # Giữ runner chạy liên tục tối đa thời gian cho phép của Actions
+          # Mở đường hầm TCP qua serveo.net nhắm thẳng cổng 5555
+          ssh -R 0:localhost:5555 serveo.net &
+          
+          # Giữ runner sống trong 6 tiếng
           sleep 21600
