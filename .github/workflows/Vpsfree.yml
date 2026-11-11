@@ -1,47 +1,55 @@
-name: GitHub Actions Cloud PC
+name: Redroid Cloud Phone on GitHub Actions
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: windows-latest
-    timeout-minutes: 360 # Treo tối đa 6 tiếng theo giới hạn của GitHub
+  run-redroid:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360 # Tối đa 6 tiếng per run
 
     steps:
-      - name: Kiểm tra thông tin hệ thống
-        run: systeminfo
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - name: Cấu hình Mật khẩu Administrator
-        run: |
-          net user runneradmin CloudPc@12345
-          Write-Host "Da doi mat khau thanh cong!"
+      - name: Cài đặt và kết nối Tailscale
+        uses: tailscale/github-action@v2
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
 
-      - name: Bật tính năng Remote Desktop (RDP)
+      - name: Kiểm tra mô-đun Kernel & KVM
         run: |
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
-          Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
-          Write-Host "Da bat RDP thanh cong!"
+          sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" || true
+          sudo modprobe ashmem_linux || true
+          ls -l /dev/binder* /dev/kvm || true
 
-      - name: Cài đặt Tailscale VPN
+      - name: Khởi chạy Redroid Android 11 Container
         run: |
-          winget install Tailscale.Tailscale --accept-source-agreements --accept-package-agreements
-          Write-Host "Da cai dat xong Tailscale!"
+          docker run -d --name redroid-phone \
+            --privileged \
+            -p 5555:5555 \
+            -v /data:/data \
+            redroid/redroid:11.0.0_latest \
+            androidboot.hardware=redroid \
+            gles.enabled=1
 
-      - name: Kết nối Tailscale tự động bằng Auth Key
+      - name: Khởi chạy Scrcpy Web Client (Điều khiển qua Trình duyệt)
         run: |
-          # Thay thế chuỗi tskey-auth-xxxx bằng Auth Key Reusable của mày
-          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="tskey-auth-ktYGj6mM5z11CNTRL-FacRxdhRf53frhUVLiUB636cTYB1WgUu" --accept-routes
-          Write-Host "Da ket noi Tailscale thanh cong!"
+          docker run -d --name redroid-web \
+            --link redroid-phone:redroid-phone \
+            -p 8000:8000 \
+            -e DEVICE_IP=redroid-phone \
+            -e DEVICE_PORT=5555 \
+            soraxas/scrcpy-server
 
-      - name: Lấy địa chỉ IP Tailscale
+      - name: Hiển thị IP Tailscale kết nối
         run: |
-          & "C:\Program Files\Tailscale\tailscale.exe" ip -4
+          echo "=== IP TAILSCALE CỦA CLOUD PHONE ==="
+          tailscale ip -4
 
-      - name: Giữ kết nối Cloud PC sống (Giữ workflow không bị timeout)
+      - name: Giữ Session sống 6 tiếng
         run: |
-          Write-Host "Cloud PC dang chay! Dung tat tab nay cho den khi muon huy."
-          while ($true) {
-              Start-Sleep -Seconds 30
-          }
+          echo "Redroid Cloud Phone đang chạy! Mở web qua IP Tailscale cổng 8000."
+          sleep 21600
