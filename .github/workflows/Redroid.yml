@@ -30,8 +30,7 @@ jobs:
       - name: Keep Runner Alive & Expose Port
         run: |
           # Dùng Localtunnel hoặc công cụ TCP tunnel miễn phí để kéo cổng 5555 ra ngoài không cần thẻ
-          sudo npm install -g localtunnel
-          lt --port 5555 &
+          ssh -R 80:localhost:5555 serveo.net
           
           # Giữ runner chạy liên tục tối đa thời gian cho phép của Actions
           sleep 21600
