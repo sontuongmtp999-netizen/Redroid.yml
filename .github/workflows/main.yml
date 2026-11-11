@@ -27,9 +27,6 @@ jobs:
 
       - name: Khởi chạy Discord Bot
         env:
-          DISCORD_TOKEN: ${{ secrets.DISCORDBOT_TOKEN }}
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         run: |
-          # Dùng lệnh này để in ra xem bot.py đang nằm ở đâu cho chắc ăn
-          ls -la
-          python bot.py
-
+          python Bot.py
