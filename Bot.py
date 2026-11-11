@@ -1,6 +1,6 @@
+import os
 import discord
 from discord import app_commands
-import os
 import bcsfe
 
 class BattleCatsBot(discord.Client):
@@ -20,17 +20,16 @@ async def hack_catfood(interaction: discord.Interaction, transfer_code: str, con
     await interaction.response.defer(thinking=True)
     
     try:
-        # Dùng bcsfe để tải save trực tiếp từ hệ thống Transfer Code của The Battle Cats
+        # Tải save trực tiếp từ hệ thống Transfer Code của The Battle Cats
         save_file = bcsfe.core.Save.from_transfer_code(transfer_code, confirmation_code)
         
         if not save_file:
-            await interaction.followup.send("Không thể tải save! Kiểm tra lại Transfer Code hoặc Confirmation Code xem đúng chưa.")
+            await interaction.followup.send("Không thể tải save! Kiểm tra lại Transfer Code hoặc Confirmation Code.")
             return
 
-        # Tiến hành bơm Catfood
+        # Bơm Catfood
         save_file.set_cat_food(amount)
         
-        # Xuất ra file save mới để member tải về chép đè
         output_filename = "SAVE_DATA"
         new_save_bytes = save_file.to_bytes()
         
@@ -38,12 +37,13 @@ async def hack_catfood(interaction: discord.Interaction, transfer_code: str, con
             f.write(new_save_bytes)
             
         await interaction.followup.send(
-            content=f"Hack thành công **{amount} Catfood** cho tài khoản dùng mã `{transfer_code}`! Tải file `SAVE_DATA` bên dưới về chép vào game:",
+            content=f"Hack thành công **{amount} Catfood** cho tài khoản `{transfer_code}`! Tải file `SAVE_DATA` dưới đây về chép vào game:",
             file=discord.File(output_filename)
         )
         os.remove(output_filename)
         
     except Exception as e:
-        await interaction.followup.send(f"Có lỗi xảy ra khi kết nối server game hoặc mã sai: `{str(e)}`")
+        await interaction.followup.send(f"Có lỗi xảy ra hoặc mã sai: `{str(e)}`")
 
-client.run(os.getenv("DISCORD_TOKEN"))
+# Nhét trực tiếp token vào đây, khỏi cần biến môi trường lằng nhằng
+client.run("L_LC0hYMyay075SMHlhRJ8K8YRplDrm9")
