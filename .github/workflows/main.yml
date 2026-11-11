@@ -25,5 +25,7 @@ jobs:
           pip install discord.py bcsfe
 
       - name: Khởi chạy Discord Bot
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
         run: |
           python Bot.py
