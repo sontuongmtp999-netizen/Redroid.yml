@@ -1,4 +1,4 @@
-name: Redroid Cloud Phone on GitHub Actions
+name: Redroid Cloud Phone Web UI
 
 on:
   workflow_dispatch:
@@ -27,18 +27,27 @@ jobs:
         run: |
           sudo docker run -d --name redroid-phone \
             --privileged \
-            -p 5555:5555 \
+            --net=host \
             -v /data:/data \
             redroid/redroid:11.0.0-latest \
             androidboot.hardware=redroid \
             gles.enabled=1
 
-      - name: Lấy IP Tailscale để kết nối ADB
+      - name: Khởi chạy Web UI (scrcpy-web qua Docker)
         run: |
-          echo "=== IP TAILSCALE CỦA CLOUD PHONE ==="
+          sudo docker run -d --name redroid-web \
+            --net=host \
+            -e ADB_SERVER_IP=127.0.0.1 \
+            -e DEVICE_PORT=5555 \
+            -p 8000:8000 \
+            cybertec/scrcpy-web || sudo docker run -d --name redroid-web --net=host -p 8000:8000 budtmo/docker-android:emulator_11 || true
+
+      - name: Lấy IP Tailscale để mở Web
+        run: |
+          echo "=== IP TAILSCALE CỦA WEB UI ==="
           tailscale ip -4
 
       - name: Giữ Session sống 6 tiếng
         run: |
-          echo "Redroid đang chạy! Dùng lệnh: adb connect <IP_TAILSCALE>:5555 để điều khiển."
+          echo "Đang chạy! Truy cập http://<IP_TAILSCALE>:8000 trên trình duyệt."
           sleep 21600
