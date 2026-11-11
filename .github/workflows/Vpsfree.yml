@@ -1,4 +1,4 @@
-name: Windows Cloud PC RDP
+name: Windows Cloud PC Pinggy
 
 on:
   workflow_dispatch:
@@ -13,10 +13,9 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
-          # Đổi mật khẩu tài khoản runner thành một chuỗi dễ nhớ để lát đăng nhập
           net user runneradmin CloudPC@12345
 
-      - name: Cài đặt và chạy Serveo TCP Tunnel cho cổng RDP (3389)
+      - name: Chạy Pinggy TCP Tunnel cho cổng RDP (3389)
         run: |
-          # Dùng lệnh SSH tích hợp sẵn trên Windows để mở đường hầm Serveo vào cổng 3389 của RDP
-          ssh -o StrictHostKeyChecking=no -R 0:localhost:3389 serveo.net
+          # Dùng ssh kết nối tới a.pinggy.io để forward cổng 3389 qua cổng 443 (né mọi tường lửa)
+          ssh -p 443 -o StrictHostKeyChecking=no -R0:localhost:3389 a.pinggy.iolocalhost:3389 serveo.net
