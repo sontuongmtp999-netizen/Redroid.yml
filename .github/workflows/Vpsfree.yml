@@ -1,4 +1,4 @@
-name: Windows Cloud PC Pinggy
+name: Windows Cloud PC Tailscale
 
 on:
   workflow_dispatch:
@@ -15,7 +15,18 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
           net user runneradmin CloudPC@12345
 
-      - name: Chạy Pinggy TCP Tunnel cho cổng RDP (3389)
+      - name: Cài đặt Tailscale
         run: |
-          ssh -p 443 -o StrictHostKeyChecking=no -R 0:localhost:3389 a.pinggy.io
-          ssh -p 443 -o StrictHostKeyChecking=no -R0:localhost:3389 a.pinggy.iolocalhost:3389 serveo.net
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          powershell -Command "Invoke-WebRequest -Uri https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale-setup.exe"
+          Start-Process -FilePath "tailscale-setup.exe" -ArgumentList "/quiet" -Wait
+
+      - name: Kết nối Tailscale vào mạng của mày
+        run: |
+          # Lấy Auth Key từ tài khoản Tailscale của mày rồi điền vào chỗ YOUR_AUTH_KEY bên dưới
+          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=tskey-auth-knJXwBeyQV11CNTRL-hKSvza1r6sT9P5bb2pCurTTrjFdsj2Eb  --hostname=github-cloud-pc
+          
+      - name: Giữ kết nối
+        run: |
+          Write-Host "Tailscale connected! Ready for RDP."
+          Start-Sleep -Seconds 21600
