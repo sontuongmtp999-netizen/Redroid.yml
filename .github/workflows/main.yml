@@ -1,0 +1,32 @@
+name: Run BCSFE Discord Bot
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Tự động khởi động lại bot mỗi 6 tiếng để tránh bị GitHub kill job giới hạn thời gian
+    - cron: '0 */6 * * *'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Cài đặt thư viện discord.py và bcsfe
+        run: |
+          python -m pip install --upgrade pip
+          pip install discord.py bcsfe
+
+      - name: Khởi chạy Discord Bot
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+        run: |
+          python bot.py
