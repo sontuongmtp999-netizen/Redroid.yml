@@ -1,4 +1,4 @@
-name: Windows Cloud PC Tailscale
+name: GitHub Actions Cloud PC
 
 on:
   workflow_dispatch:
@@ -6,29 +6,42 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 360
+    timeout-minutes: 360 # Treo tối đa 6 tiếng theo giới hạn của GitHub
+
     steps:
+      - name: Kiểm tra thông tin hệ thống
+        run: systeminfo
+
+      - name: Cấu hình Mật khẩu Administrator
+        run: |
+          net user runneradmin CloudPC@12345
+          Write-Host "Da doi mat khau thanh cong!"
+
       - name: Bật tính năng Remote Desktop (RDP)
         run: |
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
           Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0
-          net user runneradmin CloudPC@12345
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 1
+          Write-Host "Da bat RDP thanh cong!"
 
-      - name: Cài đặt Tailscale
+      - name: Cài đặt Tailscale VPN
         run: |
-          Set-ExecutionPolicy Bypass -Scope Process -Force
-          powershell -Command "Invoke-WebRequest -Uri https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe -OutFile tailscale-setup.exe"
-          Start-Process -FilePath "tailscale-setup.exe" -ArgumentList "/quiet" -Wait
+          winget install Tailscale.Tailscale --accept-source-agreements --accept-package-agreements
+          Write-Host "Da cai dat xong Tailscale!"
 
-      - name: Kết nối Tailscale vào mạng của mày
+      - name: Kết nối Tailscale tự động bằng Auth Key
         run: |
-          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=tskey-auth-kMsQcsudYh11CNTRL-2KejT6PG9H5NqHhLzPoMH5adtFhaMfNBK   --hostname=github-cloud-pc
-          
+          # Thay thế chuỗi tskey-auth-xxxx bằng Auth Key Reusable của mày
+          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey="tskey-auth-knJXwBeyQV11CNTRL-hKSvza1r6sT9P5bb2pCurTTrjFdsj2Eb " --accept-routes
+          Write-Host "Da ket noi Tailscale thanh cong!"
+
       - name: Lấy địa chỉ IP Tailscale
         run: |
           & "C:\Program Files\Tailscale\tailscale.exe" ip -4
-          
-      - name: Giữ kết nối
+
+      - name: Giữ kết nối Cloud PC sống (Giữ workflow không bị timeout)
         run: |
-          Start-Sleep -Seconds 21600
+          Write-Host "Cloud PC dang chay! Dung tat tab nay cho den khi muon huy."
+          while ($true) {
+              Start-Sleep -Seconds 30
+          }
