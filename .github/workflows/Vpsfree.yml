@@ -23,7 +23,7 @@ jobs:
 
       - name: Kết nối Tailscale vào mạng của mày
         run: |
-          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=tskey-auth-knJXwBeyQV11CNTRL-hKSvza1r6sT9P5bb2pCurTTrjFdsj2Eb  --hostname=github-cloud-pc
+          & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=tskey-auth-kMsQcsudYh11CNTRL-2KejT6PG9H5NqHhLzPoMH5adtFhaMfNBK   --hostname=github-cloud-pc
           
       - name: Lấy địa chỉ IP Tailscale
         run: |
