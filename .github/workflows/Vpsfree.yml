@@ -23,10 +23,12 @@ jobs:
 
       - name: Kết nối Tailscale vào mạng của mày
         run: |
-          # Lấy Auth Key từ tài khoản Tailscale của mày rồi điền vào chỗ YOUR_AUTH_KEY bên dưới
           & "C:\Program Files\Tailscale\tailscale.exe" up --authkey=tskey-auth-knJXwBeyQV11CNTRL-hKSvza1r6sT9P5bb2pCurTTrjFdsj2Eb  --hostname=github-cloud-pc
+          
+      - name: Lấy địa chỉ IP Tailscale
+        run: |
+          & "C:\Program Files\Tailscale\tailscale.exe" ip -4
           
       - name: Giữ kết nối
         run: |
-          Write-Host "Tailscale connected! Ready for RDP."
           Start-Sleep -Seconds 21600
