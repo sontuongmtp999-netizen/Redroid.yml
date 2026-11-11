@@ -16,8 +16,6 @@ jobs:
         uses: tailscale/github-action@v2
         with:
           authkey: tskey-auth-kqVQMiWebE11CNTRL-AVzohRdb6N7EHSv2VkrsM7kNPJFWLmYi
-          args: --advertise-tags=tag:ci --accept-routes
-
       - name: Kiểm tra mô-đun Kernel & KVM
         run: |
           sudo modprobe binder_linux devices="binder,hwbinder,vndbinder" || true
