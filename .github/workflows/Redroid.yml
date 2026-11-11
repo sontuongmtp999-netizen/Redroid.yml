@@ -1,0 +1,37 @@
+name: Run Redroid on Actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Cấp quyền tối đa để chạy container lồng nhau và giả lập KVM
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Enable KVM for Android Virtualization
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666"' | sudo tee /etc/udev/rules.d/99-kvm.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger
+          sudo usermod -aG kvm $USER
+
+      - name: Start Redroid Container
+        run: |
+          docker run -d --privileged \
+            --name redroid \
+            -p 5555:5555 \
+            redroid/redroid:11.0.0-latest \
+            androidboot.redroid_width=720 \
+            androidboot.redroid_height=1280 \
+            androidboot.redroid_dpi=320
+        
+      - name: Keep Runner Alive & Expose Port
+        run: |
+          # Dùng Localtunnel hoặc công cụ TCP tunnel miễn phí để kéo cổng 5555 ra ngoài không cần thẻ
+          sudo npm install -g localtunnel
+          lt --port 5555 &
+          
+          # Giữ runner chạy liên tục tối đa thời gian cho phép của Actions
+          sleep 21600
