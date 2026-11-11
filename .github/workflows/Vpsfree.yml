@@ -1,0 +1,13 @@
+name: Free Cloud VPS
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360 # Treo tối đa 6 tiếng mỗi lần chạy
+    steps:
+      - name: Setup Tmate SSH Tunnel (Truy cập VPS qua dòng lệnh Terminal)
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 360
