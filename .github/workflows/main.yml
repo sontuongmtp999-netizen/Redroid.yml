@@ -27,6 +27,6 @@ jobs:
 
       - name: Khởi chạy Discord Bot
         env:
-          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          DISCORD_TOKEN: ${{ secrets.DISCORDBOT_TOKEN }}
         run: |
           python Bot.py
