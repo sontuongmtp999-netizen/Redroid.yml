@@ -67,14 +67,15 @@ jobs:
           Remove-Item $installerPath -Force
       - name: Establish Tailscale Connection
         run: |
-          # Bring up Tailscale with the provided auth key and set a unique hostname
-          & "$env:ProgramFiles\Tailscale	ailscale.exe" up --authkey=${{ secrets.TS_TOKEN }} --hostname=gh-runner-$env:GITHUB_RUN_ID
+          # Dùng đường dẫn đầy đủ và chuẩn xác, bọc trong ngoặc kép để tránh lỗi ký tự tab
+          $tailscalePath = "$env:ProgramFiles\Tailscale\tailscale.exe"
+          & $tailscalePath up --authkey=${{ secrets.TS_TOKEN }} --hostname=gh-runner-$env:GITHUB_RUN_ID
           
-          # Wait for Tailscale to assign an IP
+          # Chờ Tailscale nhận IP
           $tsIP = $null
           $retries = 0
           while (-not $tsIP -and $retries -lt 10) {
-              $tsIP = & "$env:ProgramFiles\Tailscale	ailscale.exe" ip -4
+              $tsIP = & $tailscalePath ip -4
               Start-Sleep -Seconds 5
               $retries++
           }
