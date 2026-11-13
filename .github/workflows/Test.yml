@@ -16,11 +16,17 @@ jobs:
         run: |
           choco install rclone -y
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
+          
+          # Ghi file cấu hình vào C:\WorkData\rclone.conf (chống lỗi UTF-8 BOM)
           $utf8NoBOM = New-Object System.Text.UTF8Encoding $False
           [System.IO.File]::WriteAllText("C:\WorkData\rclone.conf", $env:RCLONE_SECRET, $utf8NoBOM)
-          [Environment]::SetEnvironmentVariable("RCLONE_CONFIG", "C:\WorkData\rclone.conf", [EnvironmentVariableTarget]::Machine)
-          rclone mkdir gdrive:WorkData
-          rclone copy gdrive:WorkData C:\WorkData --progress
+          
+          # Đưa biến môi trường ra toàn cục GitHub Actions
+          echo "RCLONE_CONFIG=C:\WorkData\rclone.conf" >> $env:GITHUB_ENV
+          
+          # Chạy rclone trỏ thẳng đến file cấu hình cố định
+          rclone --config "C:\WorkData\rclone.conf" mkdir gdrive:WorkData
+          rclone --config "C:\WorkData\rclone.conf" copy gdrive:WorkData C:\WorkData --progress
 
       - name: Configure Core RDP Settings
         shell: powershell
@@ -30,7 +36,6 @@ jobs:
           Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "SecurityLayer" -Value 0 -Force
           netsh advfirewall firewall delete rule name="RDP-Tailscale"
           netsh advfirewall firewall add rule name="RDP-Tailscale" dir=in action=allow protocol=TCP localport=3389
-
           # (Optional) Restart the Remote Desktop service to ensure changes take effect
           Restart-Service -Name TermService -Force
 
