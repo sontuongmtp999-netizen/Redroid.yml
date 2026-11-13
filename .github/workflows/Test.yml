@@ -9,24 +9,25 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Setup Rclone and Restore Data
+     - name: Setup Rclone and Restore Data
         shell: powershell
         env:
           RCLONE_SECRET: ${{ secrets.RCLONE_CONF }}
         run: |
           choco install rclone -y
-          $rcloneDir = "$env:APPDATA\rclone"
-          New-Item -ItemType Directory -Force -Path $rcloneDir
           
-          # Tạo đối tượng mã hóa UTF-8 KHÔNG CÓ BOM để Rclone đọc không bị lỗi cú pháp ẩn
-          $utf8NoBOM = New-Object System.Text.UTF8Encoding $False
-          [System.IO.File]::WriteAllText("$rcloneDir\rclone.conf", $env:RCLONE_SECRET, $utf8NoBOM)
-          
-          # Tạo thư mục local và Google Drive
+          # Đảm bảo thư mục WorkData tồn tại
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
-          rclone mkdir gdrive:WorkData
           
-          # Kéo dữ liệu về
+          # Ghi file cấu hình thẳng vào C:\WorkData\rclone.conf (chống lỗi UTF-8 BOM)
+          $utf8NoBOM = New-Object System.Text.UTF8Encoding $False
+          [System.IO.File]::WriteAllText("C:\WorkData\rclone.conf", $env:RCLONE_SECRET, $utf8NoBOM)
+          
+          # Cố định đường dẫn rclone.conf cho toàn bộ hệ thống (mọi user RDP đều nhận diện được)
+          [Environment]::SetEnvironmentVariable("RCLONE_CONFIG", "C:\WorkData\rclone.conf", [EnvironmentVariableTarget]::Machine)
+          
+          # Tạo thư mục trên Google Drive và kéo dữ liệu về
+          rclone mkdir gdrive:WorkData
           rclone copy gdrive:WorkData C:\WorkData --progress
           
       - name: Configure Core RDP Settings
