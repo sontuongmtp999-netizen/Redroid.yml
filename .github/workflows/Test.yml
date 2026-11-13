@@ -84,16 +84,24 @@ jobs:
           }
           Write-Host "TCP connectivity successful!"
 
-      - name: Maintain Connection
+      - name: Maintain Connection and Auto-Backup
+        shell: powershell
         run: |
           Write-Host "`n=== RDP ACCESS ==="
           Write-Host "Address: $env:TAILSCALE_IP"
           Write-Host "Username: RDP"
-          Write-Host "Password: $(echo $env:RDP_CREDS)"
+          Write-Host "Password: $env:RDP_CREDS"
           Write-Host "==================`n"
-          
-          # Keep runner active indefinitely (or until manually cancelled)
-          while ($true) {
-              Write-Host "[$(Get-Date)] RDP Active - Use Ctrl+C in workflow to terminate"
+
+          # Vòng lặp 60 lần x 300 giây (5 phút) = 18.000 giây (đúng 5 tiếng)
+          for ($i = 1; $i -le 60; $i++) {
               Start-Sleep -Seconds 300
+              Write-Host "[$(Get-Date)] Đã chạy được $($i * 5) / 300 phút..."
           }
+
+          Write-Host "[$(Get-Date)] Đã hết 5 tiếng! Đang tự động đồng bộ C:\WorkData lên Google Drive..."
+          rclone sync C:\WorkData gdrive:WorkData --progress
+          Write-Host "[$(Get-Date)] Lưu dữ liệu xong! Giữ máy sống thêm 50 phút trước khi tự ngắt."
+
+          # Ngủ thêm 50 phút (3000 giây) để mày có thời gian thong thả dùng nốt
+          Start-Sleep -Seconds 3000
