@@ -9,43 +9,27 @@ jobs:
     timeout-minutes: 360
 
     steps:
-     - name: Setup Rclone and Restore Data
+      - name: Setup Rclone and Restore Data
         shell: powershell
         env:
           RCLONE_SECRET: ${{ secrets.RCLONE_CONF }}
         run: |
           choco install rclone -y
-          
-          # Đảm bảo thư mục WorkData tồn tại
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
-          
-          # Ghi file cấu hình thẳng vào C:\WorkData\rclone.conf (chống lỗi UTF-8 BOM)
           $utf8NoBOM = New-Object System.Text.UTF8Encoding $False
           [System.IO.File]::WriteAllText("C:\WorkData\rclone.conf", $env:RCLONE_SECRET, $utf8NoBOM)
-          
-          # Cố định đường dẫn rclone.conf cho toàn bộ hệ thống (mọi user RDP đều nhận diện được)
           [Environment]::SetEnvironmentVariable("RCLONE_CONFIG", "C:\WorkData\rclone.conf", [EnvironmentVariableTarget]::Machine)
-          
-          # Tạo thư mục trên Google Drive và kéo dữ liệu về
           rclone mkdir gdrive:WorkData
           rclone copy gdrive:WorkData C:\WorkData --progress
-          
-      - name: Configure Core RDP Settings
-        run: |
-          # Enable Remote Desktop and disable Network Level Authentication (if needed)
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' `
-                             -Name "fDenyTSConnections" -Value 0 -Force
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
-                             -Name "UserAuthentication" -Value 0 -Force
-          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' `
-                             -Name "SecurityLayer" -Value 0 -Force
 
-          # Remove any existing rule with the same name to avoid duplication
+      - name: Configure Core RDP Settings
+        shell: powershell
+        run: |
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0 -Force
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "UserAuthentication" -Value 0 -Force
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server\WinStations\RDP-Tcp' -Name "SecurityLayer" -Value 0 -Force
           netsh advfirewall firewall delete rule name="RDP-Tailscale"
-          
-          # For testing, allow any incoming connection on port 3389
-          netsh advfirewall firewall add rule name="RDP-Tailscale" `
-            dir=in action=allow protocol=TCP localport=3389
+          netsh advfirewall firewall add rule name="RDP-Tailscale" dir=in action=allow protocol=TCP localport=3389
 
           # (Optional) Restart the Remote Desktop service to ensure changes take effect
           Restart-Service -Name TermService -Force
