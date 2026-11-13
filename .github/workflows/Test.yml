@@ -1,14 +1,24 @@
-name: RDP
+name: Windows Build Environment
 
 on:
   workflow_dispatch:
 
 jobs:
-  secure-rdp:
+  build-env:
     runs-on: windows-latest
-    timeout-minutes: 3600
+    timeout-minutes: 360
 
     steps:
+      - name: Setup Rclone and Restore Data
+        shell: powershell
+        run: |
+          choco install rclone -y
+          $rcloneDir = "$env:APPDATA\rclone"
+          New-Item -ItemType Directory -Force -Path $rcloneDir
+          Set-Content -Path "$rcloneDir\rclone.conf" -Value "${{ secrets.RCLONE_CONF }}"
+          New-Item -ItemType Directory -Force -Path "C:\WorkData"
+          rclone copy gdrive:WorkData C:\WorkData --progress
+          
       - name: Configure Core RDP Settings
         run: |
           # Enable Remote Desktop and disable Network Level Authentication (if needed)
