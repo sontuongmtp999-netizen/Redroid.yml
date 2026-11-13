@@ -18,16 +18,15 @@ jobs:
           $rcloneDir = "$env:APPDATA\rclone"
           New-Item -ItemType Directory -Force -Path $rcloneDir
           
-          # Ghi file cấu hình Rclone
-          [System.IO.File]::WriteAllText("$rcloneDir\rclone.conf", $env:RCLONE_SECRET)
+          # Tạo đối tượng mã hóa UTF-8 KHÔNG CÓ BOM để Rclone đọc không bị lỗi cú pháp ẩn
+          $utf8NoBOM = New-Object System.Text.UTF8Encoding $False
+          [System.IO.File]::WriteAllText("$rcloneDir\rclone.conf", $env:RCLONE_SECRET, $utf8NoBOM)
           
-          # Tạo thư mục local ở máy ảo
+          # Tạo thư mục local và Google Drive
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
-          
-          # Tự động tạo thư mục WorkData trên Google Drive nếu chưa có để tránh lỗi văng app
           rclone mkdir gdrive:WorkData
           
-          # Kéo dữ liệu về (lần đầu trống trơn thì nó bỏ qua, không báo lỗi nữa)
+          # Kéo dữ liệu về
           rclone copy gdrive:WorkData C:\WorkData --progress
           
       - name: Configure Core RDP Settings
