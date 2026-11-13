@@ -11,11 +11,16 @@ jobs:
     steps:
       - name: Setup Rclone and Restore Data
         shell: powershell
+        env:
+          RCLONE_SECRET: ${{ secrets.RCLONE_CONF }}
         run: |
           choco install rclone -y
           $rcloneDir = "$env:APPDATA\rclone"
           New-Item -ItemType Directory -Force -Path $rcloneDir
-          Set-Content -Path "$rcloneDir\rclone.conf" -Value "${{ secrets.RCLONE_CONF }}"
+          
+          # Dùng .NET ghi file trực tiếp, chống lỗi cú pháp multiline tuyệt đối
+          [System.IO.File]::WriteAllText("$rcloneDir\rclone.conf", $env:RCLONE_SECRET)
+          
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
           rclone copy gdrive:WorkData C:\WorkData --progress
           
