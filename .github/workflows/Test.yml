@@ -114,15 +114,15 @@ jobs:
           Write-Host "Password: $env:RDP_CREDS"
           Write-Host "==================`n"
 
-          # Vòng lặp 60 lần x 300 giây (5 phút) = 18.000 giây (đúng 5 tiếng)
+          # Vòng lặp 60 lần x 300 giây = 5 tiếng
           for ($i = 1; $i -le 60; $i++) {
               Start-Sleep -Seconds 300
-              Write-Host "[$(Get-Date)] Đã chạy được $($i * 5) / 300 phút..."
+              Write-Host "[$(Get-Date)] Running time: $($i * 5) / 300 minutes..."
           }
 
-          Write-Host "[$(Get-Date)] Đã hết 5 tiếng! Đang tự động đồng bộ C:\WorkData lên Google Drive..."
+          Write-Host "[$(Get-Date)] 5 hours passed! Syncing C:\WorkData to Google Drive..."
           rclone sync C:\WorkData gdrive:WorkData --progress
-          Write-Host "[$(Get-Date)] Lưu dữ liệu xong! Giữ máy sống thêm 50 phút trước khi tự ngắt."
+          Write-Host "[$(Get-Date)] Backup complete! Keeping runner alive for 50 more minutes."
 
-          # Ngủ thêm 50 phút (3000 giây) để mày có thời gian thong thả dùng nốt
+          # Ngu them 50 phut truoc khi het gio
           Start-Sleep -Seconds 3000
