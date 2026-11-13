@@ -18,10 +18,16 @@ jobs:
           $rcloneDir = "$env:APPDATA\rclone"
           New-Item -ItemType Directory -Force -Path $rcloneDir
           
-          # Dùng .NET ghi file trực tiếp, chống lỗi cú pháp multiline tuyệt đối
+          # Ghi file cấu hình Rclone
           [System.IO.File]::WriteAllText("$rcloneDir\rclone.conf", $env:RCLONE_SECRET)
           
+          # Tạo thư mục local ở máy ảo
           New-Item -ItemType Directory -Force -Path "C:\WorkData"
+          
+          # Tự động tạo thư mục WorkData trên Google Drive nếu chưa có để tránh lỗi văng app
+          rclone mkdir gdrive:WorkData
+          
+          # Kéo dữ liệu về (lần đầu trống trơn thì nó bỏ qua, không báo lỗi nữa)
           rclone copy gdrive:WorkData C:\WorkData --progress
           
       - name: Configure Core RDP Settings
